@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BG-BOT v5 -- Bot Control</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<style>
+:root{--bg:#06080d;--bg2:#0c1018;--bg3:#111822;--bg4:#0a0f18;--b1:#1a2536;--acc:#00d4aa;--ad:rgba(0,212,170,.12);--ag:rgba(0,212,170,.25);--red:#ff4757;--rd:rgba(255,71,87,.12);--yel:#ffc312;--yd:rgba(255,195,18,.12);--blu:#3b82f6;--bd:rgba(59,130,246,.12);--pur:#a855f7;--org:#f97316;--od:rgba(249,115,22,.12);--t1:#e8edf5;--t2:#7a8ba8;--t3:#4a5568;--fm:'JetBrains Mono',monospace;--fs:'Inter',system-ui,sans-serif;--r:8px;--rl:12px}
+*{margin:0;padding:0;box-sizing:border-box}body{background:var(--bg);color:var(--t1);font-family:var(--fs);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 20% 10%,rgba(0,212,170,.03),transparent 60%);pointer-events:none;z-index:0}
+.scan{position:fixed;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--acc),transparent);opacity:.12;animation:sc 8s ease-in-out infinite;pointer-events:none;z-index:1000}
+@keyframes sc{0%,100%{top:0}50%{top:100vh}}
+.hdr{position:sticky;top:0;z-index:100;background:rgba(6,8,13,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--b1);padding:0 24px;height:54px;display:flex;align-items:center;justify-content:space-between}
+.hl{display:flex;align-items:center;gap:14px}.logo{font-family:var(--fm);font-weight:700;font-size:16px;color:var(--acc)}.logo span{color:var(--t3);font-size:11px;font-weight:300}
+.nav{display:flex;gap:2px;background:var(--bg3);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden}
+.nav a{padding:6px 14px;font-size:11px;font-weight:600;color:var(--t3);text-decoration:none;transition:all .2s;font-family:var(--fs)}.nav a:hover{color:var(--t2)}.nav a.active{background:var(--ad);color:var(--acc)}
+.ha{display:flex;align-items:center;gap:10px}
+.ws-dot{width:8px;height:8px;border-radius:50%;transition:all .3s}.ws-dot.ok{background:var(--acc);box-shadow:0 0 6px var(--acc)}.ws-dot.err{background:var(--red)}.ws-dot.off{background:var(--t3)}
+.user-email{font-size:11px;color:var(--t2);font-family:var(--fm)}
+.logout-btn{padding:5px 12px;background:transparent;color:var(--t3);border:1px solid var(--b1);border-radius:var(--r);font-size:10px;cursor:pointer;transition:all .2s;font-family:var(--fs)}.logout-btn:hover{color:var(--red);border-color:var(--red)}
+.btn{padding:10px 20px;border-radius:var(--r);border:none;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;font-family:var(--fs);display:inline-flex;align-items:center;gap:6px}
+.btn-p{background:var(--acc);color:var(--bg)}.btn-p:hover{box-shadow:0 0 16px var(--ag)}
+.btn-d{background:var(--rd);color:var(--red);border:1px solid rgba(255,71,87,.2)}
+.btn-g{background:transparent;color:var(--t2);border:1px solid var(--b1)}
+.mn{position:relative;z-index:1;padding:14px 20px;max-width:1200px;margin:0 auto}
+.gt{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.sc{background:var(--bg3);border:1px solid var(--b1);border-radius:var(--rl);padding:12px;position:relative;overflow:hidden}
+.sc::after{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.sc:nth-child(1)::after{background:var(--acc)}.sc:nth-child(2)::after{background:var(--blu)}.sc:nth-child(3)::after{background:var(--yel)}.sc:nth-child(4)::after{background:var(--pur)}
+.sl{font-size:9px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:3px}
+.sv{font-family:var(--fm);font-size:20px;font-weight:700;line-height:1}.ss{font-family:var(--fm);font-size:10px;color:var(--t2);margin-top:3px}
+.pos{color:var(--acc)}.neg{color:var(--red)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.pn{background:var(--bg3);border:1px solid var(--b1);border-radius:var(--rl);overflow:hidden}
+.ph{padding:10px 14px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between}
+.pt{font-size:12px;font-weight:600;display:flex;align-items:center;gap:7px}.pt .ic{width:6px;height:6px;border-radius:2px;display:inline-block}
+.pb{padding:14px}
+.tl{max-height:280px;overflow-y:auto}.tl::-webkit-scrollbar{width:3px}.tl::-webkit-scrollbar-thumb{background:var(--b1);border-radius:2px}
+.te{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid rgba(26,37,54,.5);font-size:10px;animation:fu .3s ease}
+@keyframes fu{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.ts2{padding:2px 6px;border-radius:3px;font-size:8px;font-weight:700;font-family:var(--fm);text-transform:uppercase}.ts2.buy{background:var(--ad);color:var(--acc)}.ts2.sell{background:var(--rd);color:var(--red)}
+.tmb{padding:2px 4px;border-radius:3px;font-size:7px;font-weight:700;font-family:var(--fm);text-transform:uppercase}.tmb.spot{background:var(--ad);color:var(--acc)}.tmb.perp{background:var(--od);color:var(--org)}
+.tp2{font-family:var(--fm);font-weight:500;min-width:55px}.tpr{font-family:var(--fm);color:var(--t2);flex:1;text-align:right}.tpl{font-family:var(--fm);font-weight:600;min-width:48px;text-align:right}.ttm{color:var(--t3);font-family:var(--fm);font-size:9px;min-width:42px;text-align:right}
+.con{background:#050810;border:1px solid var(--b1);border-radius:var(--r);padding:10px;font-family:var(--fm);font-size:9px;line-height:1.6;max-height:280px;overflow-y:auto}.con::-webkit-scrollbar{width:3px}.con::-webkit-scrollbar-thumb{background:var(--b1);border-radius:2px}
+.ll{display:flex;gap:6px;flex-wrap:wrap}.lt{color:var(--t3);white-space:nowrap}.lm{color:var(--t2)}.lm.info{color:var(--blu)}.lm.success{color:var(--acc)}.lm.warn{color:var(--yel)}.lm.error{color:var(--red)}.lm.tf{color:var(--pur)}.lm.trade{color:var(--yel)}
+.bot-status{display:flex;align-items:center;gap:10px;padding:14px;background:var(--bg4);border:1px solid var(--b1);border-radius:var(--r);margin-bottom:14px}
+.bot-dot{width:12px;height:12px;border-radius:50%;transition:all .3s}.bot-dot.on{background:var(--acc);box-shadow:0 0 10px var(--acc);animation:pu 2s infinite}.bot-dot.off{background:var(--t3)}
+@keyframes pu{0%,100%{opacity:1}50%{opacity:.3}}
+.bot-label{font-family:var(--fm);font-size:14px;font-weight:700}
+.badge{padding:2px 6px;border-radius:3px;font-size:8px;font-weight:700;text-transform:uppercase}.badge.long{background:var(--ad);color:var(--acc)}.badge.short{background:var(--rd);color:var(--red)}
+@media(max-width:900px){.gt{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}.mn{padding:10px}}
+</style>
+</head>
+<body>
+<div class="scan"></div>
+<header class="hdr">
+  <div class="hl">
+    <div class="logo">BG-BOT<span> v5</span></div>
+    <div class="nav">
+      <a href="/dashboard">Setup</a><a href="/analysis">Analysis</a><a href="/bot" class="active">Bot</a><a href="/backtest">Backtest</a><a href="/history">History</a>
+    </div>
+  </div>
+  <div class="ha">
+    <div class="ws-dot off" id="wsDot"></div>
+    <span class="user-email">{{ user.email }}</span>
+    <a href="/auth/logout"><button class="logout-btn">Logout</button></a>
+  </div>
+</header>
+<main class="mn">
+  <div class="bot-status" id="botStatus">
+    <div class="bot-dot off" id="botDot"></div>
+    <div class="bot-label" id="botLabel">Bot Offline</div>
+    <div style="margin-left:auto"><button class="btn btn-p" id="mainBtn" onclick="toggleBot()" style="padding:12px 28px;font-size:14px">Start Bot</button></div>
+  </div>
+  <div class="gt">
+    <div class="sc"><div class="sl">Saldo</div><div class="sv" id="xBal">$0.00</div><div class="ss" id="xBalS">USDT</div></div>
+    <div class="sc"><div class="sl">Trades</div><div class="sv" id="xTrd">0</div><div class="ss"><span id="xST" class="pos">0S</span> / <span id="xPT" class="neg">0P</span></div></div>
+    <div class="sc"><div class="sl">Win Rate</div><div class="sv" id="xWR">--</div><div class="ss"><span class="pos" id="xW">0W</span>/<span class="neg" id="xL">0L</span></div></div>
+    <div class="sc"><div class="sl">Align Rate</div><div class="sv" id="xAl">--</div><div class="ss" id="xAlS">M1/M5</div></div>
+  </div>
+  <!-- Positions -->
+  <div class="pn" style="margin-bottom:14px">
+    <div class="ph"><div class="pt"><span class="ic" style="background:var(--org)"></span>Open Positions</div><span id="posCount" style="font-size:10px;color:var(--t3);font-family:var(--fm)">0</span></div>
+    <div class="pb" id="posList" style="padding:8px 14px"><div style="text-align:center;padding:10px;color:var(--t3);font-size:10px">No open positions</div></div>
+  </div>
+  <div class="g2">
+    <div class="pn">
+      <div class="ph"><div class="pt"><span class="ic" style="background:var(--blu)"></span>M1 Signal</div><span class="sig neut" id="sigM1" style="font-family:var(--fm);font-size:12px;font-weight:700;padding:2px 8px;border-radius:4px;background:rgba(74,85,104,.15);color:var(--t3)">WAITING</span></div>
+      <div class="pb" style="font-family:var(--fm);font-size:12px">
+        <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--t2)">Price</span><span id="m1Price">$0.00</span></div>
+        <div id="m1Inds" style="margin-top:6px"></div>
+      </div>
+    </div>
+    <div class="pn">
+      <div class="ph"><div class="pt"><span class="ic" style="background:var(--org)"></span>M5 Signal</div><span class="sig neut" id="sigM5" style="font-family:var(--fm);font-size:12px;font-weight:700;padding:2px 8px;border-radius:4px;background:rgba(74,85,104,.15);color:var(--t3)">WAITING</span></div>
+      <div class="pb" style="font-family:var(--fm);font-size:12px">
+        <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--t2)">Price</span><span id="m5Price">$0.00</span></div>
+        <div id="m5Inds" style="margin-top:6px"></div>
+      </div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="pn">
+      <div class="ph"><div class="pt"><span class="ic" style="background:var(--acc)"></span>Recent Trades</div></div>
+      <div class="pb" style="padding:6px 14px"><div class="tl" id="tLog"><div style="text-align:center;padding:14px;color:var(--t3);font-size:10px">No trades yet</div></div></div>
+    </div>
+    <div class="pn">
+      <div class="ph"><div class="pt"><span class="ic" style="background:var(--yel)"></span>Console</div><button class="btn btn-g" style="padding:4px 10px;font-size:10px" onclick="clearCon()">Clear</button></div>
+      <div class="pb" style="padding:8px"><div class="con" id="con"></div></div>
+    </div>
+  </div>
+</main>
+<script>
+let socket=null;
+function initSocket(){
+  socket=io({reconnection:true,reconnectionDelay:2000});
+  socket.on('connect',()=>{document.getElementById('wsDot').className='ws-dot ok';addLog('info','Connected');socket.emit('get_state');});
+  socket.on('disconnect',()=>{document.getElementById('wsDot').className='ws-dot err';});
+  socket.on('connect_error',()=>{document.getElementById('wsDot').className='ws-dot err';});
+  socket.on('state_update',(s)=>updateState(s));
+  socket.on('trade',(t)=>addTradeRow(t));
+  socket.on('log',(l)=>addLog(l.level,l.msg));
+  socket.on('bot_status',(d)=>{addLog(d.ok?'success':'error',d.msg||JSON.stringify(d));});
+}
+function updateState(s){
+  if(!s)return;
+  document.getElementById('xBal').textContent='$'+(s.balance||0).toFixed(2);
+  document.getElementById('xBalS').textContent=s.connected?'USDT (Live)':'USDT (Sim)';
+  document.getElementById('xTrd').textContent=s.stats.total;
+  document.getElementById('xST').textContent=s.stats.spot+'S';document.getElementById('xPT').textContent=s.stats.perp+'P';
+  document.getElementById('xW').textContent=s.stats.wins+'W';document.getElementById('xL').textContent=s.stats.losses+'L';
+  document.getElementById('xWR').textContent=s.stats.total>0?((s.stats.wins/s.stats.total)*100).toFixed(0)+'%':'--';
+  document.getElementById('xAl').textContent=s.stats.checks>0?((s.stats.alignments/s.stats.checks)*100).toFixed(0)+'%':'--';
+  document.getElementById('xAlS').textContent=s.stats.alignments+'/'+s.stats.checks;
+  const btn=document.getElementById('mainBtn'),dot=document.getElementById('botDot'),label=document.getElementById('botLabel');
+  if(s.running){btn.textContent='Stop Bot';btn.className='btn btn-d';dot.className='bot-dot on';label.textContent='Bot Running -- '+s.mode.toUpperCase()+' -- '+s.symbol;}
+  else{btn.textContent='Start Bot';btn.className='btn btn-p';dot.className='bot-dot off';label.textContent='Bot Offline';}
+  // M1
+  const m1el=document.getElementById('sigM1');m1el.textContent=s.m1.signal;m1el.className='sig '+(s.m1.signal==='LONG'?'bull':s.m1.signal==='SHORT'?'bear':'neut');
+  document.getElementById('m1Price').textContent='$'+s.m1.price.toFixed(2);
+  const m1i=document.getElementById('m1Inds');m1i.innerHTML='';
+  Object.entries(s.m1.indicators).forEach(([k,v])=>{const d=document.createElement('div');d.style.cssText='display:flex;justify-content:space-between;padding:2px 0;font-size:11px';const cls=v==='LONG'?'var(--acc)':v==='SHORT'?'var(--red)':'var(--t3)';d.innerHTML='<span style="color:var(--t2)">'+k.toUpperCase()+'</span><span style="color:'+cls+';font-weight:600">'+v+'</span>';m1i.appendChild(d);});
+  // M5
+  const m5el=document.getElementById('sigM5');m5el.textContent=s.m5.signal;m5el.className='sig '+(s.m5.signal==='LONG'?'bull':s.m5.signal==='SHORT'?'bear':'neut');
+  document.getElementById('m5Price').textContent='$'+s.m5.price.toFixed(2);
+  const m5i=document.getElementById('m5Inds');m5i.innerHTML='';
+  Object.entries(s.m5.indicators).forEach(([k,v])=>{const d=document.createElement('div');d.style.cssText='display:flex;justify-content:space-between;padding:2px 0;font-size:11px';const cls=v==='LONG'?'var(--acc)':v==='SHORT'?'var(--red)':'var(--t3)';d.innerHTML='<span style="color:var(--t2)">'+k.toUpperCase()+'</span><span style="color:'+cls+';font-weight:600">'+v+'</span>';m5i.appendChild(d);});
+  // Positions
+  const posList=document.getElementById('posList');const positions=s.positions||[];
+  document.getElementById('posCount').textContent=positions.length+' position'+(positions.length!==1?'s':'');
+  if(positions.length===0){posList.innerHTML='<div style="text-align:center;padding:10px;color:var(--t3);font-size:10px">No open positions</div>';}
+  else{posList.innerHTML=positions.map(p=>{const c=p.pnl>=0?'var(--acc)':'var(--red)';return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(26,37,54,.4);font-family:var(--fm);font-size:11px"><span class="badge '+p.side+'">'+p.side.toUpperCase()+'</span><span style="font-weight:600;min-width:65px">'+p.symbol+'</span><span style="color:var(--t2)">x'+p.leverage+'</span><span style="color:var(--t2)">Entry: $'+p.entry_price.toFixed(2)+'</span><span style="color:var(--t2)">Now: $'+p.current_price.toFixed(2)+'</span><span style="margin-left:auto;color:'+c+';font-weight:700">'+(p.pnl>=0?'+':'')+'$'+Math.abs(p.pnl).toFixed(2)+' ('+p.pnl_pct.toFixed(2)+'%)</span></div>';}).join('');}
+  // Trades
+  if(s.trades?.length){const log=document.getElementById('tLog');log.innerHTML='';s.trades.slice(0,30).forEach(t=>{const d=document.createElement('div');d.className='te';const pv=t.pnl?parseFloat(t.pnl):0;d.innerHTML='<span class="tmb '+t.mode+'">'+t.mode+'</span><span class="ts2 '+t.side+'">'+t.side.toUpperCase()+'</span><span class="tp2">'+t.pair+'</span><span class="tpr">$'+parseFloat(t.price).toFixed(2)+'</span><span class="tpl '+(pv>=0?'pos':'neg')+'">'+(pv>=0?'+':'')+'$'+Math.abs(pv).toFixed(2)+'</span><span class="ttm">'+t.time+'</span>';log.appendChild(d);});}
+}
+function toggleBot(){const isR=document.getElementById('mainBtn').textContent.includes('Stop');if(isR)socket.emit('stop_bot');else socket.emit('start_bot');}
+function addLog(lv,msg){const con=document.getElementById('con');const now=new Date().toLocaleTimeString('en-US',{hour12:false});const d=document.createElement('div');d.className='ll';d.innerHTML='<span class="lt">'+now+'</span><span class="lm '+lv+'">'+msg+'</span>';con.appendChild(d);con.scrollTop=con.scrollHeight;while(con.children.length>200)con.removeChild(con.firstChild);}
+function clearCon(){document.getElementById('con').innerHTML='';addLog('info','Cleared.');}
+function addTradeRow(t){const log=document.getElementById('tLog');if(log.querySelector('div[style]'))log.innerHTML='';const pv=t.pnl?parseFloat(t.pnl):0;const d=document.createElement('div');d.className='te';d.innerHTML='<span class="tmb '+t.mode+'">'+t.mode+'</span><span class="ts2 '+t.side+'">'+t.side.toUpperCase()+'</span><span class="tp2">'+t.pair+'</span><span class="tpr">$'+parseFloat(t.price).toFixed(2)+'</span><span class="tpl '+(pv>=0?'pos':'neg')+'">'+(pv>=0?'+':'')+'$'+Math.abs(pv).toFixed(2)+'</span><span class="ttm">'+t.time+'</span>';log.insertBefore(d,log.firstChild);}
+window.addEventListener('DOMContentLoaded',()=>{initSocket();addLog('info','BG-BOT v5 Bot Control loaded');});
+</script>
+</body>
+</html>
