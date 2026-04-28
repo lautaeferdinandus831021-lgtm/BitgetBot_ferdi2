@@ -1308,3 +1308,11 @@ if __name__ == "__main__":
     """)
     socketio.run(app, host="0.0.0.0", port=port, debug=False,
                  allow_unsafe_werkzeug=True)
+
+print("BOT STARTED...")
+
+if __name__ == "__main__":
+    while True:
+        print("Bot running...")
+        import time
+        time.sleep(5)
