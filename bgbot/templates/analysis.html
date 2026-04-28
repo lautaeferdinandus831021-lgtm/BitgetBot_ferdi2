@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BG-BOT v5 -- Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+:root{--bg:#06080d;--bg2:#0c1018;--bg3:#111822;--bg4:#0a0f18;--b1:#1a2536;--acc:#00d4aa;--ad:rgba(0,212,170,.12);--ag:rgba(0,212,170,.25);--red:#ff4757;--rd:rgba(255,71,87,.12);--yel:#ffc312;--blu:#3b82f6;--bd:rgba(59,130,246,.12);--pur:#a855f7;--pd:rgba(168,85,247,.12);--org:#f97316;--od:rgba(249,115,22,.12);--t1:#e8edf5;--t2:#7a8ba8;--t3:#4a5568;--fm:'JetBrains Mono',monospace;--fs:'Inter',system-ui,sans-serif;--r:8px;--rl:12px}
+*{margin:0;padding:0;box-sizing:border-box}body{background:var(--bg);color:var(--t1);font-family:var(--fs);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 20% 10%,rgba(0,212,170,.03),transparent 60%);pointer-events:none;z-index:0}
+.scan{position:fixed;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--acc),transparent);opacity:.12;animation:sc 8s ease-in-out infinite;pointer-events:none;z-index:1000}
+@keyframes sc{0%,100%{top:0}50%{top:100vh}}
+.hdr{position:sticky;top:0;z-index:100;background:rgba(6,8,13,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--b1);padding:0 24px;height:54px;display:flex;align-items:center;justify-content:space-between}
+.hl{display:flex;align-items:center;gap:14px}.logo{font-family:var(--fm);font-weight:700;font-size:16px;color:var(--acc)}.logo span{color:var(--t3);font-size:11px;font-weight:300}
+.nav{display:flex;gap:2px;background:var(--bg3);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden}
+.nav a{padding:6px 14px;font-size:11px;font-weight:600;color:var(--t3);text-decoration:none;transition:all .2s;font-family:var(--fs)}.nav a:hover{color:var(--t2)}.nav a.active{background:var(--ad);color:var(--acc)}
+.ha{display:flex;align-items:center;gap:10px}
+.ws-dot{width:8px;height:8px;border-radius:50%;transition:all .3s}.ws-dot.ok{background:var(--acc);box-shadow:0 0 6px var(--acc)}.ws-dot.err{background:var(--red)}.ws-dot.off{background:var(--t3)}
+.user-email{font-size:11px;color:var(--t2);font-family:var(--fm)}
+.logout-btn{padding:5px 12px;background:transparent;color:var(--t3);border:1px solid var(--b1);border-radius:var(--r);font-size:10px;cursor:pointer;transition:all .2s;font-family:var(--fs)}.logout-btn:hover{color:var(--red);border-color:var(--red)}
+.btn{padding:8px 16px;border-radius:var(--r);border:none;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;font-family:var(--fs);display:inline-flex;align-items:center;gap:5px}
+.btn-p{background:var(--acc);color:var(--bg)}.btn-p:hover{box-shadow:0 0 16px var(--ag)}
+.btn-d{background:var(--rd);color:var(--red);border:1px solid rgba(255,71,87,.2)}
+.btn-g{background:transparent;color:var(--t2);border:1px solid var(--b1)}.btn-g:hover{color:var(--t1);border-color:var(--t3)}
+.mn{position:relative;z-index:1;padding:14px 20px;max-width:1520px;margin:0 auto}
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.chart-wrap{background:var(--bg3);border:1px solid var(--b1);border-radius:var(--rl);overflow:hidden}
+.chart-hdr{padding:10px 14px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between}
+.tf-label{font-family:var(--fm);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;display:flex;align-items:center;gap:6px}
+.tf-label .d{width:6px;height:6px;border-radius:50%}.tf-label.m1{color:var(--blu)}.tf-label.m1 .d{background:var(--blu)}.tf-label.m5{color:var(--org)}.tf-label.m5 .d{background:var(--org)}
+.sig{font-family:var(--fm);font-size:12px;font-weight:700;padding:2px 8px;border-radius:4px}.sig.bull{background:var(--ad);color:var(--acc)}.sig.bear{background:var(--rd);color:var(--red)}.sig.neut{background:rgba(74,85,104,.15);color:var(--t3)}
+.chart-main{height:280px}.chart-sub{height:90px;border-top:1px solid var(--b1);position:relative}
+.chart-sub-label{position:absolute;top:3px;left:7px;font-family:var(--fm);font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--t3);z-index:5;pointer-events:none}
+.al-bar{background:var(--bg3);border:1px solid var(--b1);border-radius:var(--rl);padding:10px 18px;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:14px}
+.al-ic{font-size:22px;transition:all .3s}.al-tx{text-align:center;font-family:var(--fm);font-size:11px;font-weight:700;line-height:1.4}
+.al-bg{padding:3px 10px;border-radius:5px;font-family:var(--fm);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.al-bg.ok{background:var(--ad);color:var(--acc)}.al-bg.no{background:var(--rd);color:var(--red)}.al-bg.wt{background:rgba(74,85,104,.15);color:var(--t3)}
+@keyframes aG{0%,100%{box-shadow:0 0 4px var(--ag)}50%{box-shadow:0 0 14px var(--ag)}}.al-glow{animation:aG 2s ease-in-out infinite}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pn{background:var(--bg3);border:1px solid var(--b1);border-radius:var(--rl);overflow:hidden}
+.ph{padding:10px 14px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between}
+.pt{font-size:12px;font-weight:600;display:flex;align-items:center;gap:7px}.pt .ic{width:6px;height:6px;border-radius:2px;display:inline-block}
+.pb{padding:14px}
+.tg{display:flex;align-items:center;gap:7px;padding:7px 10px;background:var(--bg4);border:1px solid var(--b1);border-radius:var(--r);cursor:pointer;transition:all .2s;user-select:none;margin-bottom:4px}
+.tg:hover{border-color:var(--t3)}.tg.active{border-color:var(--acc);background:var(--ad)}.tg input{display:none}
+.tc{width:14px;height:14px;border-radius:3px;border:2px solid var(--t3);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.tg.active .tc{background:var(--acc);border-color:var(--acc)}
+.tc svg{width:9px;height:9px;opacity:0;transition:opacity .2s}.tg.active .tc svg{opacity:1}
+.ti{flex:1}.tn{font-size:11px;font-weight:600}.td{font-size:9px;color:var(--t3);margin-top:1px}
+.rd{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--bg4);border:1px solid var(--b1);border-radius:var(--r);cursor:pointer;transition:all .2s;margin-bottom:4px}
+.rd.active{border-color:var(--acc);background:var(--ad)}
+.rdc{width:11px;height:11px;border-radius:50%;border:2px solid var(--t3);flex-shrink:0;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.rd.active .rdc{border-color:var(--acc)}.rdc::after{content:'';width:5px;height:5px;border-radius:50%;background:var(--acc);transform:scale(0);transition:transform .2s}.rd.active .rdc::after{transform:scale(1)}
+@media(max-width:900px){.charts-grid{grid-template-columns:1fr}.g2{grid-template-columns:1fr}.mn{padding:10px}.chart-main{height:220px}.chart-sub{height:70px}}
+</style>
+</head>
+<body>
+<div class="scan"></div>
+<header class="hdr">
+  <div class="hl">
+    <div class="logo">BG-BOT<span> v5</span></div>
+    <div class="nav">
+      <a href="/dashboard">Setup</a><a href="/analysis" class="active">Analysis</a><a href="/bot">Bot</a><a href="/backtest">Backtest</a><a href="/history">History</a>
+    </div>
+  </div>
+  <div class="ha">
+    <div class="ws-dot off" id="wsDot"></div>
+    <button class="btn btn-p" id="startBtn" onclick="toggleBot()">Start Bot</button>
+    <span class="user-email">{{ user.email }}</span>
+    <a href="/auth/logout"><button class="logout-btn">Logout</button></a>
+  </div>
+</header>
+<main class="mn">
+  <div class="charts-grid">
+    <div class="chart-wrap">
+      <div class="chart-hdr"><div class="tf-label m1"><span class="d"></span>M1 -- Entry Precision</div><span class="sig neut" id="sigM1">WAITING</span></div>
+      <div class="chart-main" id="chartM1Main"></div>
+      <div class="chart-sub"><div class="chart-sub-label">RSI</div><div id="chartM1RSI" style="width:100%;height:100%"></div></div>
+      <div class="chart-sub"><div class="chart-sub-label">MACD</div><div id="chartM1MACD" style="width:100%;height:100%"></div></div>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-hdr"><div class="tf-label m5"><span class="d"></span>M5 -- Trend Confirmation</div><span class="sig neut" id="sigM5">WAITING</span></div>
+      <div class="chart-main" id="chartM5Main"></div>
+      <div class="chart-sub"><div class="chart-sub-label">RSI</div><div id="chartM5RSI" style="width:100%;height:100%"></div></div>
+      <div class="chart-sub"><div class="chart-sub-label">MACD</div><div id="chartM5MACD" style="width:100%;height:100%"></div></div>
+    </div>
+  </div>
+  <div class="al-bar" id="alBar"><div class="al-ic" id="alIc">...</div><div class="al-tx" id="alTx">Initializing...</div><div class="al-bg wt" id="alBg">STANDBY</div></div>
+  <div class="g2">
+    <div class="pn">
+      <div class="ph"><div class="pt"><span class="ic" style="background:var(--yel)"></span>Indicators</div><button class="btn btn-g" style="padding:4px 10px;font-size:10px" onclick="saveIndicators()">Save</button></div>
+      <div class="pb">
+        <div class="tg active" onclick="togI(this)"><input type="checkbox" checked data-i="rsi"><div class="tc"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#06080d" stroke-width="2" stroke-linecap="round"/></svg></div><div class="ti"><div class="tn">RSI (14)</div><div class="td">Relative Strength Index</div></div></div>
+        <div class="tg active" onclick="togI(this)"><input type="checkbox" checked data-i="macd"><div class="tc"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#06080d" stroke-width="2" stroke-linecap="round"/></svg></div><div class="ti"><div class="tn">MACD (12/26/9)</div><div class="td">Moving Average Convergence</div></div></div>
+        <div class="tg active" onclick="togI(this)"><input type="checkbox" checked data-i="bb"><div class="tc"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#06080d" stroke-width="2" stroke-linecap="round"/></svg></div><div class="ti"><div class="tn">Bollinger Bands (20,2s)</div><div class="td">Volatility envelope</div></div></div>
+        <div class="tg active" onclick="togI(this)"><input type="checkbox" checked data-i="ema"><div class="tc"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#06080d" stroke-width="2" stroke-linecap="round"/></svg></div><div class="ti"><div class="tn">EMA Cross (9/21)</div><div class="td">Exponential MA crossover</div></div></div>
+        <div class="tg" onclick="togI(this)"><input type="checkbox" data-i="stoch"><div class="tc"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#06080d" stroke-width="2" stroke-linecap="round"/></svg></div><div class="ti"><div class="tn">Stochastic (14,3,3)</div><div class="td">%K/%D oscillator</div></div></div>
+        <div class="tg" onclick="togI(this)"><input type="checkbox" data-i="atr"><div class="tc"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#06080d" stroke-width="2" stroke-linecap="round"/></svg></div><div class="ti"><div class="tn">ATR Filter (14)</div><div class="td">Volatility filter</div></div></div>
+      </div>
+    </div>
+    <div class="pn">
+      <div class="ph"><div class="pt"><span class="ic" style="background:var(--pur)"></span>Strategy</div><button class="btn btn-g" style="padding:4px 10px;font-size:10px" onclick="saveIndicators()">Save</button></div>
+      <div class="pb">
+        <div class="rd active" onclick="selStr(this,'multi_confirm')"><div class="rdc"></div><div class="ti"><div class="tn">Multi-Confirmation</div><div class="td">Entry saat 2+ indikator searah</div></div></div>
+        <div class="rd" onclick="selStr(this,'primary_secondary')"><div class="rdc"></div><div class="ti"><div class="tn">Primary + Filter</div><div class="td">RSI utama, lainnya filter</div></div></div>
+        <div class="rd" onclick="selStr(this,'weighted_score')"><div class="rdc"></div><div class="ti"><div class="tn">Weighted Score</div><div class="td">Skor bobot per indikator</div></div></div>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+let socket=null,charts={m1:{},m5:{}},strategy='{{ cfg.strategy }}';
+function initSocket(){
+  socket=io({reconnection:true,reconnectionDelay:2000,reconnectionAttempts:Infinity});
+  socket.on('connect',()=>{document.getElementById('wsDot').className='ws-dot ok';socket.emit('get_state');});
+  socket.on('disconnect',()=>{document.getElementById('wsDot').className='ws-dot err';});
+  socket.on('connect_error',()=>{document.getElementById('wsDot').className='ws-dot err';});
+  socket.on('state_update',(s)=>{const btn=document.getElementById('startBtn');
+    if(s.running){btn.textContent='Stop Bot';btn.className='btn btn-d';}else{btn.textContent='Start Bot';btn.className='btn btn-p';}
+    updateAlign(s.m1.signal,s.m5.signal,s.aligned);});
+  socket.on('chart_m1',(d)=>updateChart('m1',d));socket.on('chart_m5',(d)=>updateChart('m5',d));
+  socket.on('bot_status',()=>{});socket.on('config_saved',(d)=>{if(d.ok)alert('Saved!');});
+}
+function createTFCharts(tf){
+  const mE=document.getElementById('chart'+tf.toUpperCase()+'Main'),rE=document.getElementById('chart'+tf.toUpperCase()+'RSI'),mcE=document.getElementById('chart'+tf.toUpperCase()+'MACD');
+  if(!mE||!rE||!mcE)return;
+  const o={layout:{background:{type:'solid',color:'#0c1018'},textColor:'#7a8ba8',fontSize:10},grid:{vertLines:{color:'rgba(26,37,54,0.5)'},horzLines:{color:'rgba(26,37,54,0.5)'}},crosshair:{mode:0},rightPriceScale:{borderColor:'#1a2536',scaleMargins:{top:0.1,bottom:0.1}},timeScale:{borderColor:'#1a2536',timeVisible:true},handleScroll:{vertTouchDrag:false}};
+  const mc=LightweightCharts.createChart(mE,{...o,height:280,width:mE.clientWidth});
+  const cs=mc.addCandlestickSeries({upColor:'#00d4aa',downColor:'#ff4757',borderUpColor:'#00d4aa',borderDownColor:'#ff4757',wickUpColor:'#00d4aa',wickDownColor:'#ff4757'});
+  const ef=mc.addLineSeries({color:'#3b82f6',lineWidth:1,priceLineVisible:false,lastValueVisible:false});
+  const es=mc.addLineSeries({color:'#f97316',lineWidth:1,priceLineVisible:false,lastValueVisible:false});
+  const bu=mc.addLineSeries({color:'rgba(168,85,247,0.4)',lineWidth:1,lineStyle:2,priceLineVisible:false,lastValueVisible:false});
+  const bm=mc.addLineSeries({color:'rgba(168,85,247,0.3)',lineWidth:1,priceLineVisible:false,lastValueVisible:false});
+  const bl=mc.addLineSeries({color:'rgba(168,85,247,0.4)',lineWidth:1,lineStyle:2,priceLineVisible:false,lastValueVisible:false});
+  const vs=mc.addHistogramSeries({priceFormat:{type:'volume'},priceScaleId:'vol'});mc.priceScale('vol').applyOptions({scaleMargins:{top:0.85,bottom:0}});
+  const rc=LightweightCharts.createChart(rE,{...o,height:90,width:rE.clientWidth,rightPriceScale:{borderColor:'#1a2536',scaleMargins:{top:0.1,bottom:0.1}}});
+  const rs=rc.addLineSeries({color:'#ffc312',lineWidth:1.5,priceLineVisible:false});
+  rs.createPriceLine({price:70,color:'rgba(255,71,87,0.3)',lineWidth:1,lineStyle:2,axisLabelVisible:true});
+  rs.createPriceLine({price:30,color:'rgba(0,212,170,0.3)',lineWidth:1,lineStyle:2,axisLabelVisible:true});
+  const mac=LightweightCharts.createChart(mcE,{...o,height:90,width:mcE.clientWidth,rightPriceScale:{borderColor:'#1a2536',scaleMargins:{top:0.1,bottom:0.1}}});
+  const ml=mac.addLineSeries({color:'#3b82f6',lineWidth:1.5,priceLineVisible:false});
+  const ms=mac.addLineSeries({color:'#f97316',lineWidth:1,priceLineVisible:false});
+  const mh=mac.addHistogramSeries({priceLineVisible:false});
+  mc.timeScale().subscribeVisibleLogicalRangeChange(r=>{if(r){rc.timeScale().setVisibleLogicalRange(r);mac.timeScale().setVisibleLogicalRange(r);}});
+  new ResizeObserver(()=>{mc.applyOptions({width:mE.clientWidth});rc.applyOptions({width:rE.clientWidth});mac.applyOptions({width:mcE.clientWidth});}).observe(mE);
+  charts[tf]={main:mc,candle:cs,emaFast:ef,emaSlow:es,bbUp:bu,bbMid:bm,bbLo:bl,vol:vs,rsi:rc,rsiS:rs,macd:mac,macdL:ml,macdS:ms,macdH:mh};
+}
+function updateChart(tf,data){const c=charts[tf];if(!c||!data)return;
+  try{if(data.candles?.length){c.candle.setData(data.candles);c.vol.setData(data.candles.map(cv=>({time:cv.time,value:Math.random()*100+20,color:cv.close>=cv.open?'rgba(0,212,170,0.15)':'rgba(255,71,87,0.15)'})));}
+  const ov=data.overlays;if(ov){if(ov.ema_fast?.length)c.emaFast.setData(ov.ema_fast);if(ov.ema_slow?.length)c.emaSlow.setData(ov.ema_slow);if(ov.bb_upper?.length){c.bbUp.setData(ov.bb_upper);c.bbMid.setData(ov.bb_middle);c.bbLo.setData(ov.bb_lower);}if(ov.rsi?.length)c.rsiS.setData(ov.rsi);if(ov.macd_line?.length){c.macdL.setData(ov.macd_line);c.macdS.setData(ov.macd_signal);c.macdH.setData(ov.macd_hist);}}
+  const sig=data.signals||{};let bull=0,bear=0;Object.values(sig).forEach(s=>{if(s==='LONG')bull++;if(s==='SHORT')bear++});const thr=Math.max(2,Math.floor(Object.keys(sig).length/2));const r=bull>=thr?'LONG':bear>=thr?'SHORT':'NEUTRAL';const el=document.getElementById('sig'+tf.toUpperCase());el.textContent=r;el.className='sig '+(r==='LONG'?'bull':r==='SHORT'?'bear':'neut');}catch(e){console.error(e);}}
+function updateAlign(m1,m5,aligned){const ic=document.getElementById('alIc'),tx=document.getElementById('alTx'),bg=document.getElementById('alBg'),bar=document.getElementById('alBar');
+  if(aligned){ic.textContent='OK';ic.style.color='var(--acc)';tx.innerHTML='<span style="color:var(--acc)">'+m1+'</span> = <span style="color:var(--acc)">'+m5+'</span>';bg.className='al-bg ok';bg.textContent='ALIGNED';bar.classList.add('al-glow');}
+  else{ic.textContent=m1==='WAITING'?'...':'X';ic.style.color='var(--t3)';tx.innerHTML='<span style="color:var(--blu)">'+m1+'</span> != <span style="color:var(--org)">'+m5+'</span>';bg.className='al-bg no';bg.textContent=m1==='WAITING'?'STANDBY':'NO MATCH';bar.classList.remove('al-glow');}}
+function togI(el){const cb=el.querySelector('input');setTimeout(()=>el.classList.toggle('active',cb.checked),10);}
+function selStr(el,v){document.querySelectorAll('.rd').forEach(r=>r.classList.remove('active'));el.classList.add('active');strategy=v;}
+function saveIndicators(){const inds={};document.querySelectorAll('.tg').forEach(el=>{const cb=el.querySelector('input');inds[cb.dataset.i]={enabled:cb.checked};});
+  fetch('/api/get-config').then(r=>r.json()).then(cfg=>{cfg.indicators={rsi:{enabled:inds.rsi?.enabled!==false,period:14,overbought:70,oversold:30},macd:{enabled:inds.macd?.enabled!==false,fast:12,slow:26,signal:9},bb:{enabled:inds.bb?.enabled===true,period:20,std_dev:2},ema:{enabled:inds.ema?.enabled===true,fast:9,slow:21},stoch:{enabled:inds.stoch?.enabled===true,k_period:14,d_period:3,smooth:3},atr:{enabled:inds.atr?.enabled===true,period:14,multiplier:1.5}};cfg.strategy=strategy;
+  socket.emit('save_config',cfg);fetch('/api/save-config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(cfg)});});}
+function toggleBot(){const isR=document.getElementById('startBtn').textContent.includes('Stop');if(isR)socket.emit('stop_bot');else{saveIndicators();setTimeout(()=>socket.emit('start_bot'),500);}}
+window.addEventListener('DOMContentLoaded',()=>{createTFCharts('m1');createTFCharts('m5');initSocket();});
+</script>
+</body>
+</html>
