@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BG-BOT v5 -- Setup</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#06080d;--bg2:#0c1018;--bg3:#111822;--bg4:#0a0f18;--b1:#1a2536;--acc:#00d4aa;--ad:rgba(0,212,170,.12);--ag:rgba(0,212,170,.25);--red:#ff4757;--rd:rgba(255,71,87,.12);--yel:#ffc312;--blu:#3b82f6;--bd:rgba(59,130,246,.12);--pur:#a855f7;--pd:rgba(168,85,247,.12);--org:#f97316;--od:rgba(249,115,22,.12);--t1:#e8edf5;--t2:#7a8ba8;--t3:#4a5568;--fm:'JetBrains Mono',monospace;--fs:'Inter',system-ui,sans-serif;--r:8px;--rl:12px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--t1);font-family:var(--fs);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 20% 10%,rgba(0,212,170,.03),transparent 60%);pointer-events:none;z-index:0}
+.scan{position:fixed;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--acc),transparent);opacity:.12;animation:sc 8s ease-in-out infinite;pointer-events:none;z-index:1000}
+@keyframes sc{0%,100%{top:0}50%{top:100vh}}
+.hdr{position:sticky;top:0;z-index:100;background:rgba(6,8,13,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--b1);padding:0 24px;height:54px;display:flex;align-items:center;justify-content:space-between}
+.hl{display:flex;align-items:center;gap:14px}
+.logo{font-family:var(--fm);font-weight:700;font-size:16px;color:var(--acc)}.logo span{color:var(--t3);font-size:11px;font-weight:300}
+.nav{display:flex;gap:2px;background:var(--bg3);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden}
+.nav a{padding:6px 14px;font-size:11px;font-weight:600;color:var(--t3);text-decoration:none;transition:all .2s;font-family:var(--fs)}
+.nav a:hover{color:var(--t2)}.nav a.active{background:var(--ad);color:var(--acc)}
+.ha{display:flex;align-items:center;gap:10px}
+.ws-dot{width:8px;height:8px;border-radius:50%;transition:all .3s}.ws-dot.ok{background:var(--acc);box-shadow:0 0 6px var(--acc)}.ws-dot.err{background:var(--red)}.ws-dot.off{background:var(--t3)}
+.user-email{font-size:11px;color:var(--t2);font-family:var(--fm)}
+.logout-btn{padding:5px 12px;background:transparent;color:var(--t3);border:1px solid var(--b1);border-radius:var(--r);font-size:10px;cursor:pointer;transition:all .2s;font-family:var(--fs)}.logout-btn:hover{color:var(--red);border-color:var(--red)}
+.mn{position:relative;z-index:1;padding:24px;max-width:800px;margin:0 auto}
+.card{background:var(--bg3);border:1px solid var(--b1);border-radius:var(--rl);overflow:hidden;margin-bottom:20px}
+.card-h{padding:16px 20px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between}
+.card-t{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+.card-t .dot{width:7px;height:7px;border-radius:2px}
+.card-b{padding:20px}
+.step{display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg4);border:1px solid var(--b1);border-radius:var(--r);margin-bottom:10px}
+.step-num{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:13px;font-weight:700;flex-shrink:0}
+.step-num.s1{background:var(--ad);color:var(--acc)}.step-num.s2{background:var(--bd);color:var(--blu)}.step-num.s3{background:var(--pd);color:var(--pur)}
+.step-text{font-size:13px;color:var(--t2)}.step-text strong{color:var(--t1)}
+.fg{margin-bottom:12px}.fg:last-child{margin-bottom:0}
+.fl{display:block;font-size:11px;font-weight:600;color:var(--t2);margin-bottom:5px}
+.fi{width:100%;padding:10px 14px;background:var(--bg4);border:1px solid var(--b1);border-radius:var(--r);color:var(--t1);font-family:var(--fm);font-size:12px;outline:none;transition:all .2s}
+.fi:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--ad)}
+select.fi{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='%237a8ba8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn{padding:10px 20px;border-radius:var(--r);border:none;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;font-family:var(--fs);display:inline-flex;align-items:center;gap:6px}
+.btn-p{background:var(--acc);color:var(--bg)}.btn-p:hover{box-shadow:0 0 16px var(--ag)}
+.btn-g{background:transparent;color:var(--t2);border:1px solid var(--b1)}.btn-g:hover{color:var(--t1);border-color:var(--t3)}
+.btn-full{width:100%;justify-content:center}
+.status{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:var(--r);font-size:11px;font-family:var(--fm);margin-top:10px}
+.status.ok{background:var(--ad);color:var(--acc);border:1px solid rgba(0,212,170,.2)}
+.status.err{background:var(--rd);color:var(--red);border:1px solid rgba(255,71,87,.2)}
+.status.wait{background:rgba(74,85,104,.15);color:var(--t3);border:1px solid var(--b1)}
+@keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.a{animation:fu .4s ease forwards;opacity:0}.a:nth-child(1){animation-delay:.05s}.a:nth-child(2){animation-delay:.1s}.a:nth-child(3){animation-delay:.15s}
+</style>
+</head>
+<body>
+<div class="scan"></div>
+<header class="hdr">
+  <div class="hl">
+    <div class="logo">BG-BOT<span> v5</span></div>
+    <div class="nav">
+      <a href="/dashboard" class="active">Setup</a>
+      <a href="/analysis">Analysis</a>
+      <a href="/bot">Bot</a>
+      <a href="/backtest">Backtest</a>
+      <a href="/history">History</a>
+    </div>
+  </div>
+  <div class="ha">
+    <div class="ws-dot off" id="wsDot"></div>
+    <span class="user-email">{{ user.email }}</span>
+    <a href="/auth/logout"><button class="logout-btn">Logout</button></a>
+  </div>
+</header>
+<main class="mn">
+  <div class="card a">
+    <div class="card-h"><div class="card-t"><div class="dot" style="background:var(--acc)"></div>Getting Started</div></div>
+    <div class="card-b">
+      <div class="step"><div class="step-num s1">1</div><div class="step-text"><strong>Login</strong> -- Anda sudah login sebagai {{ user.email }}</div></div>
+      <div class="step"><div class="step-num s2">2</div><div class="step-text"><strong>API Setup</strong> -- Masukkan API key Bitget di bawah</div></div>
+      <div class="step"><div class="step-num s3">3</div><div class="step-text"><strong>Analysis & Bot</strong> -- Konfigurasi indikator, lalu jalankan bot</div></div>
+    </div>
+  </div>
+  <div class="card a">
+    <div class="card-h">
+      <div class="card-t"><div class="dot" style="background:var(--blu)"></div>Bitget API Configuration</div>
+      <button class="btn btn-g" style="padding:6px 12px;font-size:10px" onclick="testAPI()">Test Connection</button>
+    </div>
+    <div class="card-b">
+      <div class="fg"><label class="fl">API Key</label><input class="fi" type="password" id="apiKey" value="{{ api.api_key }}" placeholder="bg_xxxxxxxx"></div>
+      <div class="fg"><label class="fl">Secret Key</label><input class="fi" type="password" id="apiSecret" value="{{ api.api_secret }}" placeholder="xxxxxxxxxxxx"></div>
+      <div class="fg"><label class="fl">Passphrase</label><input class="fi" type="password" id="apiPass" value="{{ api.api_passphrase }}" placeholder="Your passphrase"></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Environment</label><select class="fi" id="apiEnv"><option value="demo" {% if api.demo %}selected{% endif %}>Demo Trading</option><option value="live" {% if not api.demo %}selected{% endif %}>Live Trading</option></select></div>
+        <div class="fg"><label class="fl">Trading Pair</label><select class="fi" id="cPair"><option {% if cfg.symbol=='BTCUSDT' %}selected{% endif %}>BTCUSDT</option><option {% if cfg.symbol=='ETHUSDT' %}selected{% endif %}>ETHUSDT</option><option {% if cfg.symbol=='SOLUSDT' %}selected{% endif %}>SOLUSDT</option><option {% if cfg.symbol=='BNBUSDT' %}selected{% endif %}>BNBUSDT</option><option {% if cfg.symbol=='XRPUSDT' %}selected{% endif %}>XRPUSDT</option><option {% if cfg.symbol=='DOGEUSDT' %}selected{% endif %}>DOGEUSDT</option></select></div>
+      </div>
+      <div id="apiStatus" class="status wait" style="display:none"></div>
+      <div style="margin-top:14px;display:flex;gap:10px">
+        <button class="btn btn-p" onclick="saveAPI()">Save API Keys</button>
+        <a href="/analysis" class="btn btn-g" style="text-decoration:none">Go to Analysis</a>
+      </div>
+    </div>
+  </div>
+  <div class="card a">
+    <div class="card-h"><div class="card-t"><div class="dot" style="background:var(--pur)"></div>Trading Parameters</div></div>
+    <div class="card-b">
+      <div class="fr">
+        <div class="fg"><label class="fl">Market Mode</label><select class="fi" id="cMode"><option value="spot" {% if cfg.market_mode=='spot' %}selected{% endif %}>Spot</option><option value="perp" {% if cfg.market_mode=='perp' %}selected{% endif %}>Perpetual</option></select></div>
+        <div class="fg"><label class="fl">Order Type</label><select class="fi" id="cOType"><option value="market" {% if cfg.order_type=='market' %}selected{% endif %}>Market</option><option value="limit" {% if cfg.order_type=='limit' %}selected{% endif %}>Limit</option></select></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Order Size (USDT)</label><input class="fi" type="number" id="cSize" value="{{ cfg.order_size }}"></div>
+        <div class="fg"><label class="fl">Max Positions</label><input class="fi" type="number" id="cMaxP" value="{{ cfg.max_positions }}"></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Take Profit %</label><input class="fi" type="number" id="cTP" value="{{ cfg.tp_percent }}" step="0.1"></div>
+        <div class="fg"><label class="fl">Stop Loss %</label><input class="fi" type="number" id="cSL" value="{{ cfg.sl_percent }}" step="0.1"></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Leverage (Perp)</label><select class="fi" id="cLev"><option>1</option><option>2</option><option selected>3</option><option>5</option><option>10</option><option>20</option></select></div>
+        <div class="fg"><label class="fl">Limit Offset %</label><input class="fi" type="number" id="cOff" value="{{ cfg.limit_offset }}" step="0.1"></div>
+      </div>
+      <button class="btn btn-p btn-full" onclick="saveParams()" style="margin-top:6px">Save Parameters</button>
+    </div>
+  </div>
+</main>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+const socket=io({reconnection:true,reconnectionDelay:2000});
+socket.on('connect',()=>{document.getElementById('wsDot').className='ws-dot ok';});
+socket.on('disconnect',()=>{document.getElementById('wsDot').className='ws-dot err';});
+function testAPI(){
+  const st=document.getElementById('apiStatus');st.style.display='flex';st.className='status wait';st.textContent='Testing connection...';
+  fetch('/api/test-api',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({api_key:document.getElementById('apiKey').value,api_secret:document.getElementById('apiSecret').value,
+      api_passphrase:document.getElementById('apiPass').value,demo:document.getElementById('apiEnv').value==='demo'})})
+  .then(r=>r.json()).then(d=>{if(d.ok){st.className='status ok';st.textContent='Connected! Balance: $'+d.balance.toFixed(2)+' USDT';}else{st.className='status err';st.textContent='Failed: '+(d.msg||'Check credentials');}}).catch(e=>{st.className='status err';st.textContent='Error: '+e;});
+}
+function saveAPI(){
+  fetch('/api/save-api',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({api_key:document.getElementById('apiKey').value,api_secret:document.getElementById('apiSecret').value,
+      api_passphrase:document.getElementById('apiPass').value,demo:document.getElementById('apiEnv').value==='demo'})})
+  .then(r=>r.json()).then(d=>{if(d.ok)alert('API keys saved!');});
+}
+function saveParams(){
+  fetch('/api/get-config').then(r=>r.json()).then(cfg=>{
+    cfg.market_mode=document.getElementById('cMode').value;cfg.order_type=document.getElementById('cOType').value;
+    cfg.symbol=document.getElementById('cPair').value;cfg.order_size=parseFloat(document.getElementById('cSize').value)||50;
+    cfg.max_positions=parseInt(document.getElementById('cMaxP').value)||3;
+    cfg.tp_percent=parseFloat(document.getElementById('cTP').value)||2.5;
+    cfg.sl_percent=parseFloat(document.getElementById('cSL').value)||1.5;
+    cfg.leverage=parseInt(document.getElementById('cLev').value)||3;
+    cfg.limit_offset=parseFloat(document.getElementById('cOff').value)||0.2;
+    fetch('/api/save-config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(cfg)})
+    .then(r=>r.json()).then(d=>{if(d.ok)alert('Parameters saved!');});
+  });
+}
+</script>
+</body>
+</html>
